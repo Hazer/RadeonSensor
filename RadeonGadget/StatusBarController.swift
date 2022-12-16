@@ -9,9 +9,16 @@ import Foundation
 import AppKit
 import Cocoa
 import SwiftUI
+import CoreGraphics
+
+protocol StatusbarView {
+    var temps: [Int] { get set }
+    func setup ()
+    
+}
 
 
-fileprivate class StatusbarView: NSView {
+fileprivate class StatusbarNSView: NSView, StatusbarView {
     private var normalLabel: [NSAttributedString.Key : NSObject]?
     private var compactLabel: [NSAttributedString.Key : NSObject]?
     private var normalValue: [NSAttributedString.Key : NSObject]?
@@ -109,7 +116,7 @@ enum TemperatureRange {
     case dangerous
 }
 
-fileprivate class SingleGpuStatusbarView: StatusbarView {
+fileprivate class SingleGpuStatusbarView: StatusbarNSView {
     
     override func draw(_ dirtyRect: NSRect) {
         guard (NSGraphicsContext.current?.cgContext) != nil else { return }
@@ -133,6 +140,103 @@ fileprivate class SingleGpuStatusbarView: StatusbarView {
     }
 }
 
+struct StatusView: View {
+    @StateObject var viewModel: TemperatureViewModel
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: 2) {
+            Text("GPU")
+            Text("T\nE\nM").font(.custom("PixeloidSans-Bold", size: 6.3)).multilineTextAlignment(.center)
+            Text(viewModel.temperatureTextUnstyled)
+                .updateStyles(fromTemperature: viewModel.temperature)
+        }
+    }
+}
+
+class DummyStatusViewModel: TemperatureViewModel {
+    override init() {
+        super.init()
+        self.temperature = 33
+        self.temperatureText = AttributedString("33")
+        self.temperatureTextUnstyled = "33"
+        self.nrOfGpus = 1
+    }
+}
+
+struct StatusView_Previews: PreviewProvider {
+    static var previews: some View {
+        StatusView(viewModel: DummyStatusViewModel())
+            .previewLayout(PreviewLayout.sizeThatFits)
+            .previewDisplayName("StatusBar Icon")
+    }
+}
+
+extension Text {
+    func updateStyles(fromTemperature temperature: Int) -> Text {
+        let range = range(forTemperature: temperature)
+        return updateFontStyle(range: range)
+    }
+    
+    func updateFontStyle(range: TemperatureRange) -> Text {
+        switch range {
+        case .cool:
+            return coolTempFont()
+        case .normal:
+            return normalTempFont()
+        case .high:
+            return highTempFont()
+        case .dangerous:
+            return dangerousTempFont()
+        case .unknown:
+            return regularFont()
+        }
+    }
+    
+    func regularFont() -> Text {
+        return self.font(Font.system(size: 14, weight: .regular))
+            .foregroundColor(Color(NSColor.labelColor))
+    }
+    
+    func coolTempFont() -> Text {
+        return self.font(Font.system(size: 14, weight: .regular))
+            .foregroundColor(Color(NSColor(hex: "#1EA4FF", alpha: 1.0)))
+    }
+    
+    func normalTempFont() -> Text {
+        return self.font(Font.system(size: 14, weight: .regular))
+            .foregroundColor(Color(NSColor(hex: "#45B795", alpha: 1.0)))
+    }
+    
+    func highTempFont() -> Text {
+        return self.font(Font.system(size: 14, weight: .semibold))
+            .foregroundColor(.orange)
+    }
+    
+    func dangerousTempFont() -> Text {
+        return self.font(Font.system(size: 14, weight: .bold))
+            .foregroundColor(.red)
+    }
+}
+
+fileprivate class ASingleGpuStatusbarView: NSHostingView<StatusView>, StatusbarView {
+    var temps: [Int] {
+        get {
+            return AppDelegate.shared.mainViewModel.temps
+        }
+        set {
+            
+        }
+    }
+    
+    func setup() {
+        
+    }
+    
+    convenience init() {
+        self.init(rootView: StatusView(viewModel: AppDelegate.shared.mainViewModel))
+    }
+}
+
 func range(forTemperature temp: Int) -> TemperatureRange {
     let range: TemperatureRange
     switch temp {
@@ -148,7 +252,7 @@ func range(forTemperature temp: Int) -> TemperatureRange {
     return range
 }
 
-fileprivate class MultiGpuStatusbarView: StatusbarView {
+fileprivate class MultiGpuStatusbarView: StatusbarNSView {
     
     var nrOfGpus: Int = 0;
     
@@ -176,7 +280,7 @@ fileprivate class MultiGpuStatusbarView: StatusbarView {
     }
 }
 
-fileprivate class NoGpuStatusbarView: StatusbarView {
+fileprivate class NoGpuStatusbarView: StatusbarNSView {
     
     override func draw(_ dirtyRect: NSRect) {
         guard (NSGraphicsContext.current?.cgContext) != nil else { return }
@@ -205,15 +309,16 @@ class StatusBarController {
             statusItem.length = 110
         } else if (nrOfGpus == 1) {
             view = SingleGpuStatusbarView()
-            statusItem.length = 70
+            statusItem.length = 76
         } else {
             let multiview = MultiGpuStatusbarView()
             multiview.nrOfGpus = nrOfGpus
             view = multiview
             statusItem.length = CGFloat((35 + (nrOfGpus * 40) - 5))
         }
+        view = ASingleGpuStatusbarView()
         view.setup()
-                
+        
         popover = NSPopover.init()
         let popupView = PopupView(dismiss: {
             if (self.popover.isShown) {
@@ -224,25 +329,35 @@ class StatusBarController {
         popover.contentViewController = NSHostingController(rootView: popupView)
         
         if let statusBarButton = statusItem.button {
-            view.frame = statusBarButton.bounds
+            (view as! NSView).frame = statusBarButton.bounds
             statusBarButton.wantsLayer = true
-            statusBarButton.addSubview(view)
+            statusBarButton.addSubview(view as! NSView)
             statusBarButton.action = #selector(togglePopover(sender:))
             statusBarButton.target = self
         }
         
         if (nrOfGpus > 0) {
-            updateTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true, block: { _ in
-                self.update()
-            })
+            //displayUpdator = DisplayUpdator(target: self, updateCallback: #selector(step)) // TODO: Use it to fetch data fast once in main app? Or just timer?
+            self.updateView()
+            self.updateData()
+            //updateTimer = Timer.scheduledTimer(withTimeInterval: 1.4, repeats: true, block: { _ in
+            //    self.updateData()
+            //    self.updateView()
+            //})
         }
     }
     
-    func update() {
+    @objc func step(displaylink: DisplayLink) {
+        updateData()
+    }
+    
+    func updateData() {
         let temps = RadeonModel.shared.getTemps(nrOfGpus: nrOfGpus)
-        
         view.temps = temps
-
+    }
+    
+    func updateView() {
+        let view = self.view as! NSView
         view.setNeedsDisplay(view.frame)
     }
     
@@ -270,29 +385,38 @@ struct PopupView: View {
     }
     
     var body: some View {
-        Button(action: {
-            /*let windowController = MainWindowController(window: NSWindow(
-                contentRect: NSMakeRect(100, 100, NSScreen.main!.frame.width/2, NSScreen.main!.frame.height/2),
-                styleMask: [.titled, .resizable, .miniaturizable, .closable],
-                backing: .buffered,
-                defer: false
-            ))
-                                   
-            windowController.showWindow(AppDelegate.shared)*/
-            MainView.showWindow()
-            if let dismiss = onDismissAction {
-                dismiss()
+        VStack {
+            Button(action: {
+                /*let windowController = MainWindowController(window: NSWindow(
+                 contentRect: NSMakeRect(100, 100, NSScreen.main!.frame.width/2, NSScreen.main!.frame.height/2),
+                 styleMask: [.titled, .resizable, .miniaturizable, .closable],
+                 backing: .buffered,
+                 defer: false
+                 ))
+                 
+                 windowController.showWindow(AppDelegate.shared)*/
+                MainView.showWindow()
+                if let dismiss = onDismissAction {
+                    dismiss()
+                }
+            }) {
+                Text("Show panel").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        }) {
-            Text("Show panel").frame(maxWidth: .infinity, maxHeight: .infinity)
+            Button(action: {
+                exit(0)
+                //NSApplication.shared.terminate(self)
+            }) {
+                Text("Exit").frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
-        Button(action: {
-            exit(0)
-            //NSApplication.shared.terminate(self)
-        }) {
-            Text("Exit").frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-            
+    }
+}
+
+struct PopupView_Previews: PreviewProvider {
+    static var previews: some View {
+        PopupView(dismiss: {})
+            .previewLayout(PreviewLayout.sizeThatFits)
+            .previewDisplayName("Popop Menu")
     }
 }
 
@@ -301,10 +425,15 @@ var viewController: NSHostingController<MainView>? = nil
 var windowController: NSWindowController? = nil
 
 struct MainView: View {
-    @StateObject var viewModel: MainViewModel  = MainViewModel()
+    @StateObject var viewModel: TemperatureViewModel
     
     var body: some View {
-        Text(viewModel.temperatureText).frame(width: 300, height: 300, alignment: .center)
+        Text(viewModel.temperatureText)
+            .frame(
+                minWidth: 200, idealWidth: 300, maxWidth: 650,
+                minHeight: 150, idealHeight: 200, maxHeight: 400,
+                alignment: .center
+            )
     }
     
     static func showWindow() {
@@ -313,12 +442,13 @@ struct MainView: View {
             return
         }
         
-        viewController = NSHostingController(rootView: MainView())
+        let mainView = MainView(viewModel: AppDelegate.shared.mainViewModel)
+        viewController = NSHostingController(rootView: mainView)
         windowController = NSWindowController(window: NSWindow(contentViewController: viewController!))
         
         if let window = windowController!.window {
             window.title = "GPU Info"
-            window.titleVisibility = .hidden
+            window.titleVisibility = .visible
             window.titlebarAppearsTransparent = true
             window.animationBehavior = .utilityWindow
             window.styleMask = [.titled, .resizable, .miniaturizable, .closable]
@@ -329,23 +459,34 @@ struct MainView: View {
     }
 }
 
-public class MainViewModel: ObservableObject {
-  @Published var temperature: Int = -1
-  @Published var temperatureText = AttributedString("-")
+struct MainView_Previews: PreviewProvider {
+    static var previews: some View {
+        MainView(viewModel: DummyStatusViewModel())
+            .previewLayout(PreviewLayout.sizeThatFits)
+            .previewDisplayName("MainView")
+    }
+}
+
+open class TemperatureViewModel: ObservableObject {
+    @Published var temperature: Int = -1
+    @Published var temperatureText: AttributedString = AttributedString("-")
+    @Published var temperatureTextUnstyled: String = "-"
     
     @Published var nrOfGpus: Int = 0
-    
+}
+
+public class MainViewModel: TemperatureViewModel {
     private var updateTimer: Timer?
     
-    private var temps: [Int] = []
+     var temps: [Int] = []
     
     deinit {
         dismiss()
     }
     
-    
-    init() {
-        nrOfGpus = RadeonModel.shared.getNrOfGpus()
+    override init() {
+        super.init()
+        super.nrOfGpus = RadeonModel.shared.getNrOfGpus()
         
         /*if (nrOfGpus < 1) {
             view = NoGpuStatusbarView()
@@ -360,8 +501,9 @@ public class MainViewModel: ObservableObject {
             statusItem.length = CGFloat((35 + (nrOfGpus * 40) - 5))
         }*/
         
-        if (nrOfGpus > 0) {
-            updateTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true, block: { _ in
+        if (super.nrOfGpus > 0) {
+            self.update()
+            updateTimer = Timer.scheduledTimer(withTimeInterval: 1.4, repeats: true, block: { _ in
                 self.update()
             })
         }
@@ -389,6 +531,8 @@ public class MainViewModel: ObservableObject {
             temp = "\(temps[0])º"
             tempRange = range(forTemperature: temps[0])
         }
+        self.temperature = temps.first ?? -1
+        self.temperatureTextUnstyled = temp
         self.temperatureText = AttributedString(temp)
         updateFontStyle(range: tempRange)
     }

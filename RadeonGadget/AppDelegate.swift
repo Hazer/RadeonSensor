@@ -9,6 +9,8 @@ import Cocoa
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
+    var mainViewModel: MainViewModel = MainViewModel()
+    
     var statusBar: StatusBarController?
     
     static var shared: AppDelegate {
