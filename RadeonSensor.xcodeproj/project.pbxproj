@@ -16,6 +16,13 @@
 		702EF698294CFDCC006D0169 /* PixeloidSansBold-RpeJo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 702EF697294CFDCC006D0169 /* PixeloidSansBold-RpeJo.ttf */; };
 		704DFBC0294BAEA0005BE46B /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 704DFBBF294BAEA0005BE46B /* Color+Hex.swift */; };
 		706CA093294CCB0200719631 /* DisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706CA092294CCB0200719631 /* DisplayLink.swift */; };
+		70C785922976DE8900F664C0 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C785912976DE8900F664C0 /* MainViewModel.swift */; };
+		70C785942976DEC300F664C0 /* TemperatureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C785932976DEC300F664C0 /* TemperatureViewModel.swift */; };
+		70C785962976DF4800F664C0 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C785952976DF4800F664C0 /* MainView.swift */; };
+		70C785982976E09500F664C0 /* TemperatureRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C785972976E09500F664C0 /* TemperatureRange.swift */; };
+		70C7859A2976E0CE00F664C0 /* Text+TemperatureRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C785992976E0CE00F664C0 /* Text+TemperatureRange.swift */; };
+		70C7859C2976E11A00F664C0 /* StatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C7859B2976E11A00F664C0 /* StatusView.swift */; };
+		70C7859E2976E37E00F664C0 /* PopupMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C7859D2976E37E00F664C0 /* PopupMenuView.swift */; };
 		CA1CAE4226FDD7C1004D7E9A /* RadeonSensorUserClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1CAE4026FDD7C1004D7E9A /* RadeonSensorUserClient.cpp */; };
 		CA1CAE4326FDD7C1004D7E9A /* RadeonSensorUserClient.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CA1CAE4126FDD7C1004D7E9A /* RadeonSensorUserClient.hpp */; };
 		CA1CAE4726FDE16A004D7E9A /* Headers in Headers */ = {isa = PBXBuildFile; fileRef = CA1CAE4426FDE049004D7E9A /* Headers */; };
@@ -43,6 +50,13 @@
 		702EF697294CFDCC006D0169 /* PixeloidSansBold-RpeJo.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PixeloidSansBold-RpeJo.ttf"; sourceTree = "<group>"; };
 		704DFBBF294BAEA0005BE46B /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		706CA092294CCB0200719631 /* DisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayLink.swift; sourceTree = "<group>"; };
+		70C785912976DE8900F664C0 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		70C785932976DEC300F664C0 /* TemperatureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureViewModel.swift; sourceTree = "<group>"; };
+		70C785952976DF4800F664C0 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		70C785972976E09500F664C0 /* TemperatureRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureRange.swift; sourceTree = "<group>"; };
+		70C785992976E0CE00F664C0 /* Text+TemperatureRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Text+TemperatureRange.swift"; sourceTree = "<group>"; };
+		70C7859B2976E11A00F664C0 /* StatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
+		70C7859D2976E37E00F664C0 /* PopupMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupMenuView.swift; sourceTree = "<group>"; };
 		CA1CAE4026FDD7C1004D7E9A /* RadeonSensorUserClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RadeonSensorUserClient.cpp; sourceTree = "<group>"; };
 		CA1CAE4126FDD7C1004D7E9A /* RadeonSensorUserClient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = RadeonSensorUserClient.hpp; sourceTree = "<group>"; };
 		CA1CAE4426FDE049004D7E9A /* Headers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Headers; sourceTree = "<group>"; };
@@ -106,19 +120,34 @@
 			path = Font;
 			sourceTree = "<group>";
 		};
+		70C785A02976E48B00F664C0 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				CA7649352706F9B0001C109A /* RadeonModel.swift */,
+				704DFBBF294BAEA0005BE46B /* Color+Hex.swift */,
+				70C785972976E09500F664C0 /* TemperatureRange.swift */,
+				70C785992976E0CE00F664C0 /* Text+TemperatureRange.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		CA1CAEC926FDF8FE004D7E9A /* RadeonGadget */ = {
 			isa = PBXGroup;
 			children = (
+				70C785A02976E48B00F664C0 /* Models */,
 				702EF699294CFDD6006D0169 /* Font */,
 				CA764937270705DC001C109A /* Info.plist */,
-				CA1CAEE026FDF973004D7E9A /* StatusBarController.swift */,
+				70C785952976DF4800F664C0 /* MainView.swift */,
+				70C7859B2976E11A00F664C0 /* StatusView.swift */,
+				70C7859D2976E37E00F664C0 /* PopupMenuView.swift */,
+				70C785912976DE8900F664C0 /* MainViewModel.swift */,
+				70C785932976DEC300F664C0 /* TemperatureViewModel.swift */,
 				CA1CAEDF26FDF94C004D7E9A /* RadeonGadget.entitlements */,
 				CA1CAED726FDF91A004D7E9A /* AppDelegate.swift */,
+				CA1CAEE026FDF973004D7E9A /* StatusBarController.swift */,
 				CA1CAED926FDF924004D7E9A /* ViewController.swift */,
 				CA1CAEDB26FDF930004D7E9A /* Assets.xcassets */,
-				CA7649352706F9B0001C109A /* RadeonModel.swift */,
 				CA76493927070759001C109A /* main.swift */,
-				704DFBBF294BAEA0005BE46B /* Color+Hex.swift */,
 				706CA092294CCB0200719631 /* DisplayLink.swift */,
 			);
 			path = RadeonGadget;
@@ -322,12 +351,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA1CAEDA26FDF925004D7E9A /* ViewController.swift in Sources */,
+				70C7859C2976E11A00F664C0 /* StatusView.swift in Sources */,
 				706CA093294CCB0200719631 /* DisplayLink.swift in Sources */,
+				70C785942976DEC300F664C0 /* TemperatureViewModel.swift in Sources */,
+				70C7859E2976E37E00F664C0 /* PopupMenuView.swift in Sources */,
+				70C785962976DF4800F664C0 /* MainView.swift in Sources */,
 				CA76493A27070759001C109A /* main.swift in Sources */,
+				70C7859A2976E0CE00F664C0 /* Text+TemperatureRange.swift in Sources */,
 				CA1CAEE126FDF974004D7E9A /* StatusBarController.swift in Sources */,
 				CA7649362706F9B0001C109A /* RadeonModel.swift in Sources */,
 				CA1CAED826FDF91A004D7E9A /* AppDelegate.swift in Sources */,
 				704DFBC0294BAEA0005BE46B /* Color+Hex.swift in Sources */,
+				70C785922976DE8900F664C0 /* MainViewModel.swift in Sources */,
+				70C785982976E09500F664C0 /* TemperatureRange.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

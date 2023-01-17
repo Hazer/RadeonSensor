@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
@@ -21,7 +22,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("launching")
         NSApp.setActivationPolicy(NSApplication.ActivationPolicy.accessory)
         statusBar = StatusBarController.init()
+        
+        // listInstalledFonts()
     }
+    func listInstalledFonts() {
+          let fontFamilies = NSFontManager.shared.availableFontFamilies.sorted()
+          for family in fontFamilies {
+              print(family)
+              let familyFonts = NSFontManager.shared.availableMembers(ofFontFamily: family)
+              if let fonts = familyFonts {
+                  for font in fonts {
+                    print("\t\(font)")
+                  }
+              }
+          }
+      }
 
     func applicationWillTerminate(_ aNotification: Notification) {
         
